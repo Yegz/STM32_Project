@@ -3,9 +3,9 @@
 
 typedef enum 
 {  
-	Button_KEY0 = 0,
-	Button_KEY1 = 1,
-	Button_WAKEUP = 2
+    Button_KEY0 = 0,
+    Button_KEY1 = 1,
+    Button_WAKEUP = 2
 } Button_TypeDef;
 
 typedef struct  
