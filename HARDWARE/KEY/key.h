@@ -9,14 +9,15 @@ typedef enum
 } Button_TypeDef;
 
 typedef struct  
-{   GPIO_TypeDef*       BUTTON_PORT ;
-    uint16_t            BUTTON_PIN ;
-    GPIOMode_TypeDef    BUTTON_MODE;
+{   
+    GPIO_TypeDef*           BUTTON_PORT ;
+    uint16_t                     BUTTON_PIN ;
+    GPIOMode_TypeDef     BUTTON_MODE;
 }Button_PinModeDef;	
 
-#define KEY0            PAin(13)  
-#define KEY1            PAin(15)
-#define KEY2            PAin(0)
+#define KEY0                PAin(13)  
+#define KEY1                PAin(15)
+#define KEY2                PAin(0)
 	 
 void KEY_Init(void);
 u8   KEY_Scan(void); 			    
