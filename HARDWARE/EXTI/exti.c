@@ -67,8 +67,8 @@ void EXTI0_IRQHandler(void)
     delay_ms(10);    
   	if(EXTI_GetITStatus(EXTI_Line0) != RESET)	 
 	{	  
-		LED0=!LED0;
-		LED1=!LED1;	
+		DR_LED_LED0=!DR_LED_LED0;
+		DR_LED_LED1=!DR_LED_LED1;	
 	}
 	EXTI_ClearITPendingBit(EXTI_Line0); 
 }
@@ -79,12 +79,12 @@ void EXTI15_10_IRQHandler(void)
  
     if(EXTI_GetITStatus(EXTI_Line13) != RESET)
 	{
-	 	LED0=!LED0;
+	 	DR_LED_LED0=!DR_LED_LED0;
 	}
  
      else if (EXTI_GetITStatus(EXTI_Line15) != RESET)
 	{
-		LED1=!LED1;
+		DR_LED_LED1=!DR_LED_LED1;
 	}
 	 EXTI_ClearITPendingBit(EXTI_Line13);  
 	 EXTI_ClearITPendingBit(EXTI_Line15);  

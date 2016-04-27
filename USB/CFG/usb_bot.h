@@ -23,23 +23,23 @@
 
 typedef struct _Bulk_Only_CBW
 {
-  u32 dSignature;
-  u32 dTag;
-  u32 dDataLength;
-  u8  bmFlags;
-  u8  bLUN;
-  u8  bCBLength;
-  u8  CB[16];
+    u32 dSignature;
+    u32 dTag;
+    u32 dDataLength;
+    u8  bmFlags;
+    u8  bLUN;
+    u8  bCBLength;
+    u8  CB[16];
 }
 Bulk_Only_CBW;
 
 /* Bulk-only Command Status Wrapper */
 typedef struct _Bulk_Only_CSW
 {
-  u32 dSignature;
-  u32 dTag;
-  u32 dDataResidue;
-  u8  bStatus;
+    u32 dSignature;
+    u32 dTag;
+    u32 dDataResidue;
+    u8  bStatus;
 }
 Bulk_Only_CSW;
 /* Exported constants --------------------------------------------------------*/

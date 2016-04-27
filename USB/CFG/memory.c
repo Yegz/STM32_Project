@@ -13,8 +13,9 @@
 * INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
 *******************************************************************************/
 
-/* Includes ------------------------------------------------------------------*/
-
+/**************************************************************************************
+* Includes
+**************************************************************************************/
 #include "memory.h"
 #include "usb_scsi.h"
 #include "usb_bot.h"
@@ -24,18 +25,17 @@
 #include "hw_config.h"
 #include "mass_mal.h"
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
+/***************************************************************************************
+* Data
+***************************************************************************************/
 vu32 Block_Read_count = 0;
 vu32 Block_offset;
 vu32 Counter = 0;
+u32   Idx;
+u32   Data_Buffer[BULK_MAX_PACKET_SIZE *2]; /* 512 bytes*/
+u8    TransferState = TXFR_IDLE;
+u8    Usb_Status_Reg = 0;
 
-u32  Idx;
-u32 Data_Buffer[BULK_MAX_PACKET_SIZE *2]; /* 512 bytes*/
-u8 TransferState = TXFR_IDLE;
-/* Extern variables ----------------------------------------------------------*/
 extern u8 Bulk_Data_Buff[BULK_MAX_PACKET_SIZE];  /* data buffer*/
 extern u16 Data_Len;
 extern u8 Bot_State;
@@ -44,9 +44,9 @@ extern Bulk_Only_CSW CSW;
 extern u32 Mass_Memory_Size[2];
 extern u32 Mass_Block_Size[2];
 
-extern u8 Usb_Status_Reg;
-
-
+/**************************************************************************************
+* Function Implementation
+**************************************************************************************/
 /*******************************************************************************
 * Function Name  : Read_Memory
 * Description    : Handle the Read operation from the microSD card.

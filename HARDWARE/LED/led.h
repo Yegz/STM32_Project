@@ -1,10 +1,34 @@
 #ifndef __LED_H
-#define __LED_H	 
+#define __LED_H
+
+/**************************************************************************************
+* Includes
+**************************************************************************************/
 #include "stm32f10x.h"
 
-#define LED0 PAout(8)// PA8
-#define LED1 PDout(2)// PD2	
+/**************************************************************************************
+* Define
+**************************************************************************************/
+#define DR_LED_LED0                                   PAout(8)
+#define DR_LED_LED1                                   PDout(2)
+#define DR_LED_LEDSTATUSERR                   (0xFF)
 
-void LED_Init(void);
-		 				    
+/***************************************************************************************
+* Data
+***************************************************************************************/
+typedef enum
+{
+    DR_LED_GPIOA,
+    DR_LED_GPIOB,
+    DR_LED_GPIOC,
+    DR_LED_GPIOD,
+} GpioTypeDef_t;
+
+/***************************************************************************************
+* Function prototypes
+****************************************************************************************/
+void p_dr_LedInit(void);
+void p_dr_SetLedStatus(GpioTypeDef_t GpioType, u8 GpioPinNum, u8 Value);
+u8   p_dr_GetLedStatus(GpioTypeDef_t GpioType, u8 GpioPinNum);
 #endif
+

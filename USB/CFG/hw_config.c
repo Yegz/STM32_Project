@@ -159,9 +159,9 @@ void USB_Interrupts_Config(void)
 * Return         : None.
 *******************************************************************************/
 void Led_RW_ON(void)
-	{
-     LED1=0;
-	}
+{
+    DR_LED_LED1 = 0;
+}
 
 /*******************************************************************************
 * Function Name  : Led_RW_OFF
@@ -172,7 +172,7 @@ void Led_RW_ON(void)
 *******************************************************************************/
 void Led_RW_OFF(void)
 {
-LED1=1;
+    DR_LED_LED1 = 1;
 }
 /*******************************************************************************
 * Function Name  : USB_Configured_LED
@@ -206,14 +206,14 @@ void USB_NotConfigured_LED(void)
 *******************************************************************************/
 void USB_Cable_Config (FunctionalState NewState)
 {
-  if (NewState != DISABLE)
-  {
-	LED1=1;
-  }
-  else
-  {
-	LED1=0;
-  }
+    if (NewState != DISABLE)
+    {
+        DR_LED_LED1 = 1;
+    }
+    else
+    {
+        DR_LED_LED1 = 0;
+    }
 }
 
 /*******************************************************************************
