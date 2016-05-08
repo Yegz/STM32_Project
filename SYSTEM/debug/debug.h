@@ -1,39 +1,28 @@
-#ifndef __RTC_H
-#define __RTC_H	    
+#ifndef DEBUG__H_
+#define DEBUG__H_
+
 /**************************************************************************************
 * Includes
 **************************************************************************************/
+#include <stdio.h>
+#include <time.h>
+#include "sys.h"
+#include "rtc.h"
+#include "usart.h"
 
 /***************************************************************************************
 * Define
 ****************************************************************************************/
 
+
 /***************************************************************************************
 * Data
 ***************************************************************************************/
-typedef struct 
-{
-    u8 hour;
-    u8 min;
-    u8 sec;			
-    u16 w_year;
-    u8  w_month;
-    u8  w_date;
-    u8  week;		 
-}tm;	
-
-extern tm G_st_Timer; 
-extern u8 const mon_table[12];
 
 /***************************************************************************************
 * Function prototypes
-****************************************************************************************/				 
-void p_dr_RtcDispTime(u8 x,u8 y,u8 size);
-void p_dr_RtcDispWeek(u8 x,u8 y,u8 size,u8 lang);
-u8   p_dr_RtcInit(void);    
-u8   p_dr_RtcIsLeapYear(u16 year);
-u8   p_dr_RtcGet(void);   
-u8   p_dr_RtcGetWeek(u16 year,u8 month,u8 day);
-u8   p_dr_RtcSet(u16 syear,u8 smon,u8 sday,u8 hour,u8 min,u8 sec);
+****************************************************************************************/
+void p_dr_UartDebug(void);
+
 #endif
- 
+

@@ -5,6 +5,8 @@
  * Carols   24-apr-2016                      Git        add  uart debug demo
  *
  **/
+#include <stdio.h>
+#include <rt_misc.h>
 #include "sys.h"
 #include "usart.h"
 
@@ -18,6 +20,7 @@ static u8 USART_RX_STA = 0;
 * Function Implementation
 **************************************************************************************/
 #if USART_USE_MICRO_LIB
+
 int fputc(int ch, FILE *f)
 {
     USART_SendData(USART1, (uint8_t) ch);
@@ -31,31 +34,61 @@ int GetKey (void)
 {
     while (!(USART1->SR & USART_FLAG_RXNE));
 
-    return ((int)(USART1->DR & 0x1FF));
+    return ((int)(USART1->DR & USART_DATA_MASK));
 }
+
 #else
-#pragma import(__use_no_semihosting)
+
+int p_dr_UartSendChar(int ch)
+{
+    while(!(USART1->SR & USART_FLAG_TXE));
+    USART1->DR = (ch & USART_DATA_MASK);
+    return ch;
+}
+
+int p_dr_UartGetKey(void)
+{
+    while(!(USART1->SR & USART_FLAG_RXNE));
+    return ((int)(USART1->DR & USART_DATA_MASK));
+}
+
+#pragma import(__use_no_semihosting_swi)
 
 struct __FILE
 {
-    int handle;
-
+    int handle; // add whatever you need here
 };
 
 FILE __stdout;
-
-_sys_exit(int x)
-{
-    x = x;
-}
+FILE __stdin;
 
 int fputc(int ch, FILE *f)
 {
-    while((USART1->SR&0X40) == 0);
-    USART1->DR = (u8) ch;
-
-    return ch;
+    return (p_dr_UartSendChar(ch));
 }
+
+int fgetc(FILE*f)
+{
+    return (p_dr_UartSendChar(p_dr_UartGetKey()));
+}
+
+void _ttywrch(int ch)
+{
+    p_dr_UartSendChar(ch);
+}
+
+/* You implementation of ferror */
+int ferror(FILE *f)
+{
+    return EOF;
+}
+
+/* endless loop */
+void _sys_exit(int x)
+{
+    x = x;    
+}
+
 #endif
 
 void p_dr_UartInit(u32 bound)
