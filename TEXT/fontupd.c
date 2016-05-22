@@ -56,21 +56,21 @@ u8 updata_fontx(u8 *fxpath,u8 fx)
 	{
  		tempsys[0]=ftinfo.ugbkaddr;							
 		tempsys[1]=fftemp->fsize;	 	  					
-		SPI_Flash_Write((u8*)tempsys,FONTINFOADDR,8);		
+		p_dr_SPIFlashWrite((u8*)tempsys,FONTINFOADDR,8);		
 		flashaddr=ftinfo.ugbkaddr;
 	}else//GBK16
 	{
-		SPI_Flash_Read((u8*)tempsys,FONTINFOADDR,8);    
+		p_dr_SPIFlashRead((u8*)tempsys,FONTINFOADDR,8);    
 		flashaddr=tempsys[0]+tempsys[1];
 		tempsys[0]=flashaddr;								
 		tempsys[1]=fftemp->fsize;	 	  					
-		SPI_Flash_Write((u8*)tempsys,FONTINFOADDR+8,8);	
+		p_dr_SPIFlashWrite((u8*)tempsys,FONTINFOADDR+8,8);	
 	}	   
 	while(res==FR_OK)
 	{
  	 	res=f_read(fftemp,temp,1024,(UINT *)&bread);	
 		if(res!=FR_OK)break;				
-		SPI_Flash_Write(temp,offx+flashaddr,1024);
+		p_dr_SPIFlashWrite(temp,offx+flashaddr,1024);
   		offx+=bread;	  
 		fupd_prog(fftemp->fsize,offx);			
 		if(bread!=1024)break;					
@@ -95,7 +95,7 @@ u8 update_font()
 	if(res)return 2;	   
 	
 	res=0XAA;
-   	SPI_Flash_Write(&res,FONTINFOADDR+24,1);
+   	p_dr_SPIFlashWrite(&res,FONTINFOADDR+24,1);
 	return 0;
 }
 
@@ -105,14 +105,14 @@ u8 font_init(void)
 
 	u8 fontok=0;
 
- 	SPI_Flash_Read(&fontok,FONTINFOADDR+24,1);
+ 	p_dr_SPIFlashRead(&fontok,FONTINFOADDR+24,1);
 
 	if(fontok!=0XAA)return 1;
- 	SPI_Flash_Read((u8*)tempsys,FONTINFOADDR,8);
+ 	p_dr_SPIFlashRead((u8*)tempsys,FONTINFOADDR,8);
 
 	ftinfo.ugbksize=tempsys[1];
 
-	SPI_Flash_Read((u8*)tempsys,FONTINFOADDR+8,8);
+	p_dr_SPIFlashRead((u8*)tempsys,FONTINFOADDR+8,8);
 
 	ftinfo.f16addr=tempsys[0];	
 

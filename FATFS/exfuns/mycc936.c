@@ -33,7 +33,7 @@ WCHAR ff_convert (	/* Converted code, 0 means conversion error */
 			for (n = 16; n; n--)
 			{
 				i = li + (hi - li) / 2;	
-				SPI_Flash_Read((u8*)&t,ftinfo.ugbkaddr+i*4+gbk2uni_offset,4);//读出8个字节  
+				p_dr_SPIFlashRead((u8*)&t,ftinfo.ugbkaddr+i*4+gbk2uni_offset,4);//读出8个字节  
 				if (src == t[0]) break;
 				if (src > t[0])li = i;  
 				else hi = i;    

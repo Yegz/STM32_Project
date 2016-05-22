@@ -23,8 +23,8 @@ DSTATUS disk_initialize (
             res = SD_Initialize();//SD_Initialize();
             break;
         case EX_FLASH://外部flash
-            SPI_Flash_Init();
-            if(SPI_Flash_ReadID()!=SPI_FLASH_TYPE)res=1;//W25Q16 ID=0XEF15
+            p_dr_SPIFlashInit();
+            if(p_dr_SPIFlashReadID()!=SPI_FLASH_TYPE)res=1;//W25Q16 ID=0XEF15
             else res=0;
             break;
         default:
@@ -62,7 +62,7 @@ DRESULT disk_read (
         case EX_FLASH://外部flash
             for(; count>0; count--)
             {
-                SPI_Flash_Read(buff,sector*FLASH_SECTOR_SIZE,FLASH_SECTOR_SIZE);
+                p_dr_SPIFlashRead(buff,sector*FLASH_SECTOR_SIZE,FLASH_SECTOR_SIZE);
                 sector++;
                 buff+=FLASH_SECTOR_SIZE;
             }
@@ -98,8 +98,8 @@ DRESULT disk_write (
         case EX_FLASH://外部flash
             for(; count>0; count--)
             {
-                //SPI_Flash_Erase_Sector(sector);
-                SPI_Flash_Write((u8*)buff,sector*FLASH_SECTOR_SIZE,FLASH_SECTOR_SIZE);
+                //p_dr_SPIFlashEraseSector(sector);
+                p_dr_SPIFlashWrite((u8*)buff,sector*FLASH_SECTOR_SIZE,FLASH_SECTOR_SIZE);
                 sector++;
                 buff+=FLASH_SECTOR_SIZE;
             }

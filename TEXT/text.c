@@ -21,8 +21,10 @@ void Get_HzMat(unsigned char *code,unsigned char *mat,u8 size)
 	qh-=0x81;   
 	foffset=((unsigned long)190*qh+ql)*(size*2);//得到字库中的字节偏移量  		  
 
-	if(size==16)SPI_Flash_Read(mat,foffset+ftinfo.f16addr,32);
-	else SPI_Flash_Read(mat,foffset+ftinfo.f12addr,24);     												    
+	if(size==16)
+        p_dr_SPIFlashRead(mat,foffset+ftinfo.f16addr,32);
+	else 
+        p_dr_SPIFlashRead(mat,foffset+ftinfo.f12addr,24);                                                      
 }  
 //显示一个指定大小的汉字
 //x,y :汉字的坐标

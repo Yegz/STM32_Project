@@ -1,205 +1,242 @@
+/* == HISTORY =========================================================
+ *
+ * Name     Date                Ver     Action
+ * --------------------------------------------------------------------
+ * Carols   15-May-2016         Git     Optimize
+ *
+ **/
+ 
 #include "flash.h" 
 #include "spi.h"
 #include "delay.h"   
 
-void SPI_Flash_Init(void)
+/**************************************************************************************
+* Data
+**************************************************************************************/
+u8 G_u8_SPIFlashBuf[W25X_FLASH_SECTOR_SIZE];
+
+/**************************************************************************************
+* Function Implementation
+**************************************************************************************/
+void p_dr_SPIFlashInit(void)
 {
-	//RCC->APB2ENR|=1<<2;      
-	//GPIOA->CRL&=0XFFF000FF; 
-	//GPIOA->CRL|=0X00033300;
-	//GPIOA->ODR|=0X7<<2;    
 	GPIO_InitTypeDef GPIO_InitStructure;
+    
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4;  //SPI CS
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  
  	GPIO_Init(GPIOA, &GPIO_InitStructure);
  	GPIO_SetBits(GPIOA,GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4);
 
-
-	SPIx_Init();		  
+	p_dr_SPIInit();		  
 }  
 
-u8 SPI_Flash_ReadSR(void)   
+u8 p_dr_SPIFlashReadSR(void)   
 {  
-	u8 byte=0;   
-	SPI_FLASH_CS=0;                         
-	SPIx_ReadWriteByte(W25X_ReadStatusReg);   
-	byte=SPIx_ReadWriteByte(0Xff);            
-	SPI_FLASH_CS=1;                           
+	u8 byte=0;
+    
+	SPI_FLASH_CS = 0;                         
+	p_dr_SPIReadWriteByte(W25X_ReadStatusReg);   
+	byte = p_dr_SPIReadWriteByte(W25X_SPI_GET_DATA_CMD);            
+	SPI_FLASH_CS = 1; 
+    
 	return byte;   
 } 
 
-void SPI_FLASH_Write_SR(u8 sr)   
+void p_dr_SPIFlashWriteSR(u8 sr)   
 {   
 	SPI_FLASH_CS=0;                           
-	SPIx_ReadWriteByte(W25X_WriteStatusReg);   
-	SPIx_ReadWriteByte(sr);              
+	p_dr_SPIReadWriteByte(W25X_WriteStatusReg);   
+	p_dr_SPIReadWriteByte(sr);              
 	SPI_FLASH_CS=1;                           
 }   
   
-void SPI_FLASH_Write_Enable(void)   
+void p_dr_SPIFlashWriteEnable(void)   
 {
 	SPI_FLASH_CS=0;                            
-    SPIx_ReadWriteByte(W25X_WriteEnable);     
+    p_dr_SPIReadWriteByte(W25X_WriteEnable);     
 	SPI_FLASH_CS=1;                           
 } 
   
-void SPI_FLASH_Write_Disable(void)   
+void p_dr_SPIFlashWriteDisable(void)   
 {  
 	SPI_FLASH_CS=0;                          
-    SPIx_ReadWriteByte(W25X_WriteDisable);     
+    p_dr_SPIReadWriteByte(W25X_WriteDisable);     
 	SPI_FLASH_CS=1;                         
 } 			    
 
-u16 SPI_Flash_ReadID(void)
+u16 p_dr_SPIFlashReadID(void)
 {
-	u16 Temp = 0;	  
+	u16 Temp = 0;
+    
 	SPI_FLASH_CS=0;				    
-	SPIx_ReadWriteByte(0x90);
-	SPIx_ReadWriteByte(0x00); 	    
-	SPIx_ReadWriteByte(0x00); 	    
-	SPIx_ReadWriteByte(0x00); 	 			   
-	Temp|=SPIx_ReadWriteByte(0xFF)<<8;  
-	Temp|=SPIx_ReadWriteByte(0xFF);	 
-	SPI_FLASH_CS=1;				    
+	p_dr_SPIReadWriteByte(0x90);
+	p_dr_SPIReadWriteByte(0x00); 	    
+	p_dr_SPIReadWriteByte(0x00); 	    
+	p_dr_SPIReadWriteByte(0x00); 	 			   
+	Temp |= p_dr_SPIReadWriteByte(0xFF)<<8;  
+	Temp |= p_dr_SPIReadWriteByte(0xFF);	 
+	SPI_FLASH_CS=1;	
+    
 	return Temp;
 }   		    
 
-void SPI_Flash_Read(u8* pBuffer,u32 ReadAddr,u16 NumByteToRead)   
+void p_dr_SPIFlashRead(u8* pBuffer, u32 ReadAddr, u16 NumByteToRead)   
 { 
- 	u16 i;    												    
+ 	u16 i;    
+    
 	SPI_FLASH_CS=0;                            
-    SPIx_ReadWriteByte(W25X_ReadData);        
-    SPIx_ReadWriteByte((u8)((ReadAddr)>>16));  
-    SPIx_ReadWriteByte((u8)((ReadAddr)>>8));   
-    SPIx_ReadWriteByte((u8)ReadAddr);   
-    for(i=0;i<NumByteToRead;i++)
+    p_dr_SPIReadWriteByte(W25X_ReadData);        
+    p_dr_SPIReadWriteByte((u8)((ReadAddr)>>16));  
+    p_dr_SPIReadWriteByte((u8)((ReadAddr)>>8));   
+    p_dr_SPIReadWriteByte((u8)ReadAddr);
+    
+    for(i=0; i<NumByteToRead; i++)
 	{ 
-        pBuffer[i]=SPIx_ReadWriteByte(0XFF);   
+        pBuffer[i] = p_dr_SPIReadWriteByte(0XFF);   
     }
 	SPI_FLASH_CS=1;                         
 }  
 
-void SPI_Flash_Write_Page(u8* pBuffer,u32 WriteAddr,u16 NumByteToWrite)
+void SPI_Flash_Write_Page(u8* pBuffer, u32 WriteAddr, u16 NumByteToWrite)
 {
  	u16 i;  
-    SPI_FLASH_Write_Enable();               
+    
+    p_dr_SPIFlashWriteEnable();  
+    
 	SPI_FLASH_CS=0;                         
-    SPIx_ReadWriteByte(W25X_PageProgram);   
-    SPIx_ReadWriteByte((u8)((WriteAddr)>>16)); 
-    SPIx_ReadWriteByte((u8)((WriteAddr)>>8));   
-    SPIx_ReadWriteByte((u8)WriteAddr);   
-    for(i=0;i<NumByteToWrite;i++)SPIx_ReadWriteByte(pBuffer[i]);
-	SPI_FLASH_CS=1;                          
-	SPI_Flash_Wait_Busy();					  
+    p_dr_SPIReadWriteByte(W25X_PageProgram);   
+    p_dr_SPIReadWriteByte((u8)((WriteAddr)>>16)); 
+    p_dr_SPIReadWriteByte((u8)((WriteAddr)>>8));   
+    p_dr_SPIReadWriteByte((u8)WriteAddr);
+    
+    for(i=0;i<NumByteToWrite;i++)
+        p_dr_SPIReadWriteByte(pBuffer[i]);
+	SPI_FLASH_CS=1;    
+    
+	p_dr_SPIFlashWaitBusy();					  
 } 
 
-void SPI_Flash_Write_NoCheck(u8* pBuffer,u32 WriteAddr,u16 NumByteToWrite)   
+void SPI_Flash_Write_NoCheck(u8* pBuffer, u32 WriteAddr, u16 NumByteToWrite)   
 { 			 		 
-	u16 pageremain;	   
-	pageremain=256-WriteAddr%256; 
-	if(NumByteToWrite<=pageremain)pageremain=NumByteToWrite;
+	u16 pageremain;	
+    
+	pageremain = W25X_FLASH_PAGE_SIZE - WriteAddr%W25X_FLASH_PAGE_SIZE; 
+	if(NumByteToWrite <= pageremain)
+        pageremain = NumByteToWrite;
 	while(1)
 	{	   
-		SPI_Flash_Write_Page(pBuffer,WriteAddr,pageremain);
-		if(NumByteToWrite==pageremain)break;
-	 	else //NumByteToWrite>pageremain
+		SPI_Flash_Write_Page(pBuffer, WriteAddr, pageremain);
+		if(NumByteToWrite == pageremain)
+            break;
+	 	else                                               // NumByteToWrite>pageremain
 		{
-			pBuffer+=pageremain;
-			WriteAddr+=pageremain;	
+			pBuffer += pageremain;
+			WriteAddr += pageremain;	
 
-			NumByteToWrite-=pageremain;			  
-			if(NumByteToWrite>256)pageremain=256;
-			else pageremain=NumByteToWrite; 	 
+			NumByteToWrite -= pageremain;			  
+			if(NumByteToWrite > W25X_FLASH_PAGE_SIZE)
+                pageremain = W25X_FLASH_PAGE_SIZE;
+			else 
+                pageremain = NumByteToWrite;   
 		}
 	};	    
 } 
 	   
-u8 SPI_FLASH_BUF[4096];
-void SPI_Flash_Write(u8* pBuffer,u32 WriteAddr,u16 NumByteToWrite)   
+void p_dr_SPIFlashWrite(u8* pBuffer,u32 WriteAddr,u16 NumByteToWrite)   
 { 
 	u32 secpos;
 	u16 secoff;
 	u16 secremain;	   
  	u16 i;    
 
-	secpos=WriteAddr/4096;
-	secoff=WriteAddr%4096;
-	secremain=4096-secoff;
+	secpos = WriteAddr/W25X_FLASH_SECTOR_SIZE;
+	secoff = WriteAddr%W25X_FLASH_SECTOR_SIZE;
+	secremain = W25X_FLASH_SECTOR_SIZE - secoff;
 
-	if(NumByteToWrite<=secremain)secremain=NumByteToWrite;
+	if(NumByteToWrite <= secremain)
+        secremain = NumByteToWrite;
+    
 	while(1) 
 	{	
-		SPI_Flash_Read(SPI_FLASH_BUF,secpos*4096,4096);
-		for(i=0;i<secremain;i++)
+		p_dr_SPIFlashRead(G_u8_SPIFlashBuf, secpos*4W25X_FLASH_SECTOR_SIZE, W25X_FLASH_SECTOR_SIZE);
+		for(i=0; i<secremain; i++)
 		{
-			if(SPI_FLASH_BUF[secoff+i]!=0XFF)break;
+			if(G_u8_SPIFlashBuf[secoff + i] != 0XFF)
+                break;
 		}
+        
 		if(i<secremain)
 		{
-			SPI_Flash_Erase_Sector(secpos);
-			for(i=0;i<secremain;i++)	
+			p_dr_SPIFlashEraseSector(secpos);
+			for(i=0; i<secremain; i++)	
 			{
-				SPI_FLASH_BUF[i+secoff]=pBuffer[i];	  
+				G_u8_SPIFlashBuf[i+secoff] = pBuffer[i];	  
 			}
-			SPI_Flash_Write_NoCheck(SPI_FLASH_BUF,secpos*4096,4096);
-
-		}else SPI_Flash_Write_NoCheck(pBuffer,WriteAddr,secremain);
-		if(NumByteToWrite==secremain)break;
+			SPI_Flash_Write_NoCheck(G_u8_SPIFlashBuf, secpos*4W25X_FLASH_SECTOR_SIZE, 4W25X_FLASH_SECTOR_SIZE);
+		}
+        else 
+		    SPI_Flash_Write_NoCheck(pBuffer,WriteAddr,secremain);
+        
+		if(NumByteToWrite == secremain)
+            break;
 		else
 		{
 			secpos++;
-			secoff=0;
+			secoff = 0;
 
-		   	pBuffer+=secremain;  
-			WriteAddr+=secremain;
-		   	NumByteToWrite-=secremain;			
-			if(NumByteToWrite>4096)secremain=4096;
-			else secremain=NumByteToWrite;			
+		   	pBuffer += secremain;  
+			WriteAddr += secremain;
+		   	NumByteToWrite -= secremain;			
+			if(NumByteToWrite > 4W25X_FLASH_SECTOR_SIZE)
+                secremain = 4W25X_FLASH_SECTOR_SIZE;
+			else 
+                secremain = NumByteToWrite;           
 		}	 
 	};	 	 
 }
 
-void SPI_Flash_Erase_Chip(void)   
+void p_dr_SPIFlashEraseChip(void)   
 {                                             
-    SPI_FLASH_Write_Enable();                
-    SPI_Flash_Wait_Busy();   
+    p_dr_SPIFlashWriteEnable();                
+    p_dr_SPIFlashWaitBusy();   
   	SPI_FLASH_CS=0;                           
-    SPIx_ReadWriteByte(W25X_ChipErase);      
+    p_dr_SPIReadWriteByte(W25X_ChipErase);      
 	SPI_FLASH_CS=1;                         
-	SPI_Flash_Wait_Busy();   				
+	p_dr_SPIFlashWaitBusy();   				
 }   
 
-void SPI_Flash_Erase_Sector(u32 Dst_Addr)   
+void p_dr_SPIFlashEraseSector(u32 Dst_Addr)   
 {   
-	Dst_Addr*=4096;
-    SPI_FLASH_Write_Enable();                
-    SPI_Flash_Wait_Busy();   
+	Dst_Addr *= 4W25X_FLASH_SECTOR_SIZE;
+    
+    p_dr_SPIFlashWriteEnable();                
+    p_dr_SPIFlashWaitBusy();   
   	SPI_FLASH_CS=0;                          
-    SPIx_ReadWriteByte(W25X_SectorErase);   
-    SPIx_ReadWriteByte((u8)((Dst_Addr)>>16)); 
-    SPIx_ReadWriteByte((u8)((Dst_Addr)>>8));   
-    SPIx_ReadWriteByte((u8)Dst_Addr);  
+    p_dr_SPIReadWriteByte(W25X_SectorErase);   
+    p_dr_SPIReadWriteByte((u8)((Dst_Addr)>>16)); 
+    p_dr_SPIReadWriteByte((u8)((Dst_Addr)>>8));   
+    p_dr_SPIReadWriteByte((u8)Dst_Addr);  
 	SPI_FLASH_CS=1;                           
-    SPI_Flash_Wait_Busy();   				
+    p_dr_SPIFlashWaitBusy();   				
 }  
 
-void SPI_Flash_Wait_Busy(void)   
+void p_dr_SPIFlashWaitBusy(void)   
 {   
-	while ((SPI_Flash_ReadSR()&0x01)==0x01);  
+	while ((p_dr_SPIFlashReadSR()&0x01) == 0x01);  
 }  
 
-void SPI_Flash_PowerDown(void)   
+void p_dr_SPIFlashPowerDown(void)   
 { 
   	SPI_FLASH_CS=0;                         
-    SPIx_ReadWriteByte(W25X_PowerDown);        
+    p_dr_SPIReadWriteByte(W25X_PowerDown);        
 	SPI_FLASH_CS=1;                        
     delay_us(3);                             
 }   
 
-void SPI_Flash_WAKEUP(void)   
+void p_dr_SPIFlashWakeUp(void)   
 {  
   	SPI_FLASH_CS=0;                          
-    SPIx_ReadWriteByte(W25X_ReleasePowerDown);   //  send W25X_PowerDown command 0xAB    
+    p_dr_SPIReadWriteByte(W25X_ReleasePowerDown);   //  send W25X_PowerDown command 0xAB    
 	SPI_FLASH_CS=1;                         
     delay_us(3);                              
 }   

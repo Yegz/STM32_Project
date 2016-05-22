@@ -29,7 +29,7 @@
 #include "msd.h"
 #include "mmc_sd.h"
 #include "spi.h"
- 
+
 /*******************************************************************************
 * Function Name  : MSD_Init
 * Description    : Initializes the MSD/SD communication.
@@ -40,149 +40,154 @@
 *******************************************************************************/
 u8 MSD_Init(void)
 {
-  u32 i = 0;
+    u32 i = 0;
 
-	RCC->APB2ENR|=1<<2;      
-	GPIOA->CRL&=0XFFF000FF; 
-	GPIOA->CRL|=0X00033300;	    
-	GPIOA->ODR|=0X7<<2;   
-	SPIx_Init();
- 	SPIx_SetSpeed(SPI_SPEED_256);
+    RCC->APB2ENR|=1<<2;
+    GPIOA->CRL&=0XFFF000FF;
+    GPIOA->CRL|=0X00033300;
+    GPIOA->ODR|=0X7<<2;
+    p_dr_SPIInit();
+    p_dr_SPISetSpeed(SPI_SPEED_256);
 
-  /* MSD chip select high */
-  Set_SD_CS;
-  /* Send dummy byte 0xFF, 10 times with CS high*/
-  /* rise CS and MOSI for 80 clocks cycles */
-  for (i = 0; i <= 9; i++)
-  {
-    /* Send dummy byte 0xFF */
-    MSD_WriteByte(DUMMY);
-  }
-  /*------------Put MSD in SPI mode--------------*/
-  /* MSD initialized and set to SPI mode properly */
-  return (MSD_GoIdleState());
+    /* MSD chip select high */
+    Set_SD_CS;
+    /* Send dummy byte 0xFF, 10 times with CS high*/
+    /* rise CS and MOSI for 80 clocks cycles */
+    for (i = 0; i <= 9; i++)
+    {
+        /* Send dummy byte 0xFF */
+        MSD_WriteByte(DUMMY);
+    }
+    /*------------Put MSD in SPI mode--------------*/
+    /* MSD initialized and set to SPI mode properly */
+    return (MSD_GoIdleState());
 }
-				    
+
 u8 MSD_WriteBuffer1(u8* pBuffer, u32 WriteAddr, u32 NumByteToWrite)
 {
-	u32 i = 0, NbrOfBlock = 0, Offset = 0;
-	u32 arg;
-	u16 cnt;
-	u8 rvalue = MSD_RESPONSE_FAILURE;		    
-	NbrOfBlock = NumByteToWrite / BLOCK_SIZE;		 
-	Clr_SD_CS;				 
-	while (NbrOfBlock --)
-	{		
-		arg=WriteAddr+Offset;
-	    SPIx_ReadWriteByte(24 | 0x40);
-	    SPIx_ReadWriteByte(arg >> 24);
-	    SPIx_ReadWriteByte(arg >> 16);
-	    SPIx_ReadWriteByte(arg >> 8);
-	    SPIx_ReadWriteByte(arg);
-	    SPIx_ReadWriteByte(0XFF);
+    u32 i = 0, NbrOfBlock = 0, Offset = 0;
+    u32 arg;
+    u16 cnt;
+    u8 rvalue = MSD_RESPONSE_FAILURE;
+    NbrOfBlock = NumByteToWrite / BLOCK_SIZE;
+    Clr_SD_CS;
+    while (NbrOfBlock --)
+    {
+        arg = WriteAddr+Offset;
+        p_dr_SPIReadWriteByte(24 | 0x40);
+        p_dr_SPIReadWriteByte(arg >> 24);
+        p_dr_SPIReadWriteByte(arg >> 16);
+        p_dr_SPIReadWriteByte(arg >> 8);
+        p_dr_SPIReadWriteByte(arg);
+        p_dr_SPIReadWriteByte(0XFF);
 
-		cnt=0XFFF;
-		while(cnt&&(SPIx_ReadWriteByte(0xff)!=0))cnt--;						  						 
-	    if(cnt==0)return 1;  
-		
-			  				   
-	    SPIx_ReadWriteByte(0XFF);	 
-		SPIx_ReadWriteByte(0XFE);	
-				    
-		for (i=0;i<BLOCK_SIZE;i++)
-		{										 
-			SPIx_ReadWriteByte(*pBuffer);											 
-			pBuffer++;
-		}							   
-		Offset += 512;	
-														   
-		SPIx_ReadWriteByte(0XFF);
-		SPIx_ReadWriteByte(0XFF);
- 
-		cnt=0XFFF;
-		do
-		{
-			rvalue=SPIx_ReadWriteByte(0XFF);
-			rvalue&=0x1f;
-			if(rvalue==0x05)break;	
-		}while(cnt--);	
- 	 	while(SPIx_ReadWriteByte(0XFF)==0);
+        cnt=0XFFF;
+        while(cnt&&(p_dr_SPIReadWriteByte(0xff)!=0))
+            cnt--;
+        if(cnt==0)
+            return 1;
 
-	    if(cnt==0)
-		{
-			rvalue=2;
-			//printf("2\n");
-			//return	 2;  
-		}else rvalue=0;
-							   
-//		if (MSD_GetDataResponse() == MSD_DATA_OK)
-//		{									  
-//			rvalue = MSD_RESPONSE_NO_ERROR;
-//		}
-//		else
-//		{									   
-//			rvalue = MSD_RESPONSE_FAILURE;
-//		}
-	}					 		  
-	Set_SD_CS;										  
-	SPIx_ReadWriteByte(DUMMY);	    
-	return rvalue;
+
+        p_dr_SPIReadWriteByte(0XFF);
+        p_dr_SPIReadWriteByte(0XFE);
+
+        for (i=0; i<BLOCK_SIZE; i++)
+        {
+            p_dr_SPIReadWriteByte(*pBuffer);
+            pBuffer++;
+        }
+        Offset += 512;
+
+        p_dr_SPIReadWriteByte(0XFF);
+        p_dr_SPIReadWriteByte(0XFF);
+
+        cnt=0XFFF;
+        do
+        {
+            rvalue = p_dr_SPIReadWriteByte(0XFF);
+            rvalue &= 0x1f;
+            if(rvalue == 0x05)
+                break;
+        }while(cnt--);
+        
+        while(p_dr_SPIReadWriteByte(0XFF) == 0);
+
+        if(cnt==0)
+        {
+            rvalue=2;
+            //printf("2\n");
+            //return     2;
+        }
+        else rvalue=0;
+
+//      if (MSD_GetDataResponse() == MSD_DATA_OK)
+//      {
+//          rvalue = MSD_RESPONSE_NO_ERROR;
+//      }
+//      else
+//      {
+//          rvalue = MSD_RESPONSE_FAILURE;
+//      }
+    }
+    Set_SD_CS;
+    p_dr_SPIReadWriteByte(DUMMY);
+    return rvalue;
 }
- 
+
 u8 MSD_ReadBuffer2(u8* pBuffer, u32 ReadAddr, u32 NumByteToRead)
 {
-  u32 i = 0, NbrOfBlock = 0, Offset = 0;
-  u8 rvalue = MSD_RESPONSE_FAILURE;
+    u32 i = 0, NbrOfBlock = 0, Offset = 0;
+    u8 rvalue = MSD_RESPONSE_FAILURE;
 
-  /* Calculate number of blocks to read */
-  NbrOfBlock = NumByteToRead / BLOCK_SIZE;
-  /* MSD chip select low */
-  Clr_SD_CS;
+    /* Calculate number of blocks to read */
+    NbrOfBlock = NumByteToRead / BLOCK_SIZE;
+    /* MSD chip select low */
+    Clr_SD_CS;
 
-  /* Data transfer */
-  while (NbrOfBlock --)
-  {
-    /* Send CMD17 (MSD_READ_SINGLE_BLOCK) to read one block */
-    MSD_SendCmd (MSD_READ_SINGLE_BLOCK, ReadAddr + Offset, 0xFF);
-    /* Check if the MSD acknowledged the read block command: R1 response (0x00: no errors) */
-    if (MSD_GetResponse(MSD_RESPONSE_NO_ERROR))
+    /* Data transfer */
+    while (NbrOfBlock --)
     {
-      return  MSD_RESPONSE_FAILURE;
+        /* Send CMD17 (MSD_READ_SINGLE_BLOCK) to read one block */
+        MSD_SendCmd (MSD_READ_SINGLE_BLOCK, ReadAddr + Offset, 0xFF);
+        /* Check if the MSD acknowledged the read block command: R1 response (0x00: no errors) */
+        if (MSD_GetResponse(MSD_RESPONSE_NO_ERROR))
+        {
+            return  MSD_RESPONSE_FAILURE;
+        }
+        /* Now look for the data token to signify the start of the data */
+        if (!MSD_GetResponse(MSD_START_DATA_SINGLE_BLOCK_READ))
+        {
+            /* Read the MSD block data : read NumByteToRead data */
+            for (i = 0; i < BLOCK_SIZE; i++)
+            {
+                /* Read the pointed data */
+                *pBuffer = MSD_ReadByte();
+                /* Point to the next location where the byte read will be saved */
+                pBuffer++;
+            }
+            /* Set next read address*/
+            Offset += 512;
+            /* get CRC bytes (not really needed by us, but required by MSD) */
+            MSD_ReadByte();
+            MSD_ReadByte();
+            /* Set response value to success */
+            rvalue = MSD_RESPONSE_NO_ERROR;
+        }
+        else
+        {
+            /* Set response value to failure */
+            rvalue = MSD_RESPONSE_FAILURE;
+        }
     }
-    /* Now look for the data token to signify the start of the data */
-    if (!MSD_GetResponse(MSD_START_DATA_SINGLE_BLOCK_READ))
-    {
-      /* Read the MSD block data : read NumByteToRead data */
-      for (i = 0; i < BLOCK_SIZE; i++)
-      {
-        /* Read the pointed data */
-        *pBuffer = MSD_ReadByte();
-        /* Point to the next location where the byte read will be saved */
-        pBuffer++;
-      }
-      /* Set next read address*/
-      Offset += 512;
-      /* get CRC bytes (not really needed by us, but required by MSD) */
-      MSD_ReadByte();
-      MSD_ReadByte();
-      /* Set response value to success */
-      rvalue = MSD_RESPONSE_NO_ERROR;
-    }
-    else
-    {
-      /* Set response value to failure */
-      rvalue = MSD_RESPONSE_FAILURE;
-    }
-  }
 
-  /* MSD chip select high */
-  Set_SD_CS;
-  /* Send dummy byte: 8 Clock pulses of delay */
-  MSD_WriteByte(DUMMY);
-  /* Returns the reponse */
-  return rvalue;
+    /* MSD chip select high */
+    Set_SD_CS;
+    /* Send dummy byte: 8 Clock pulses of delay */
+    MSD_WriteByte(DUMMY);
+    /* Returns the reponse */
+    return rvalue;
 }
- 
+
 
 /*******************************************************************************
 * Function Name  : MSD_GetCIDRegister
@@ -279,27 +284,27 @@ u8 MSD_ReadBuffer2(u8* pBuffer, u32 ReadAddr, u32 NumByteToRead)
 *******************************************************************************/
 void MSD_SendCmd(u8 Cmd, u32 Arg, u8 Crc)
 {
-  u32 i = 0x00;
-  u8 Frame[6];
+    u32 i = 0x00;
+    u8 Frame[6];
 
-  /* Construct byte1 */
-  Frame[0] = (Cmd | 0x40);
-  /* Construct byte2 */
-  Frame[1] = (u8)(Arg >> 24);
-  /* Construct byte3 */
-  Frame[2] = (u8)(Arg >> 16);
-  /* Construct byte4 */
-  Frame[3] = (u8)(Arg >> 8);
-  /* Construct byte5 */
-  Frame[4] = (u8)(Arg);
-  /* Construct CRC: byte6 */
-  Frame[5] = (Crc);
+    /* Construct byte1 */
+    Frame[0] = (Cmd | 0x40);
+    /* Construct byte2 */
+    Frame[1] = (u8)(Arg >> 24);
+    /* Construct byte3 */
+    Frame[2] = (u8)(Arg >> 16);
+    /* Construct byte4 */
+    Frame[3] = (u8)(Arg >> 8);
+    /* Construct byte5 */
+    Frame[4] = (u8)(Arg);
+    /* Construct CRC: byte6 */
+    Frame[5] = (Crc);
 
-  /* Send the Cmd bytes */
-  for (i = 0; i < 6; i++)
-  {
-    MSD_WriteByte(Frame[i]);
-  }
+    /* Send the Cmd bytes */
+    for (i = 0; i < 6; i++)
+    {
+        MSD_WriteByte(Frame[i]);
+    }
 }
 
 /*******************************************************************************
@@ -315,46 +320,46 @@ void MSD_SendCmd(u8 Cmd, u32 Arg, u8 Crc)
 *******************************************************************************/
 u8 MSD_GetDataResponse(void)
 {
-  u32 i = 0;
-  u8 response, rvalue;
+    u32 i = 0;
+    u8 response, rvalue;
 
-  while (i <= 64)
-  {
-    /* Read resonse */
-    response = MSD_ReadByte();
-    /* Mask unused bits */
-    response &= 0x1F;
-
-    switch (response)
+    while (i <= 64)
     {
-      case MSD_DATA_OK:
-      {
-        rvalue = MSD_DATA_OK;
-        break;
-      }
+        /* Read resonse */
+        response = MSD_ReadByte();
+        /* Mask unused bits */
+        response &= 0x1F;
 
-      case MSD_DATA_CRC_ERROR:
-        return MSD_DATA_CRC_ERROR;
+        switch (response)
+        {
+            case MSD_DATA_OK:
+            {
+                rvalue = MSD_DATA_OK;
+                break;
+            }
 
-      case MSD_DATA_WRITE_ERROR:
-        return MSD_DATA_WRITE_ERROR;
+            case MSD_DATA_CRC_ERROR:
+                return MSD_DATA_CRC_ERROR;
 
-      default:
-      {
-        rvalue = MSD_DATA_OTHER_ERROR;
-        break;
-      }
+            case MSD_DATA_WRITE_ERROR:
+                return MSD_DATA_WRITE_ERROR;
+
+            default:
+            {
+                rvalue = MSD_DATA_OTHER_ERROR;
+                break;
+            }
+        }
+        /* Exit loop in case of data ok */
+        if (rvalue == MSD_DATA_OK)
+            break;
+        /* Increment loop counter */
+        i++;
     }
-    /* Exit loop in case of data ok */
-    if (rvalue == MSD_DATA_OK)
-      break;
-    /* Increment loop counter */
-    i++;
-  }
-  /* Wait null data */
-  while (MSD_ReadByte() == 0);
-  /* Return response */
-  return response;
+    /* Wait null data */
+    while (MSD_ReadByte() == 0);
+    /* Return response */
+    return response;
 }
 
 /*******************************************************************************
@@ -367,24 +372,24 @@ u8 MSD_GetDataResponse(void)
 *******************************************************************************/
 u8 MSD_GetResponse(u8 Response)
 {
-  u32 Count = 0xFFF;
+    u32 Count = 0xFFF;
 
-  /* Check if response is got or a timeout is happen */
-  while ((MSD_ReadByte() != Response) && Count)
-  {
-    Count--;
-  }
+    /* Check if response is got or a timeout is happen */
+    while ((MSD_ReadByte() != Response) && Count)
+    {
+        Count--;
+    }
 
-  if (Count == 0)
-  {
-    /* After time out */
-    return MSD_RESPONSE_FAILURE;
-  }
-  else
-  {
-    /* Right response got */
-    return MSD_RESPONSE_NO_ERROR;
-  }
+    if (Count == 0)
+    {
+        /* After time out */
+        return MSD_RESPONSE_FAILURE;
+    }
+    else
+    {
+        /* Right response got */
+        return MSD_RESPONSE_NO_ERROR;
+    }
 }
 
 /*******************************************************************************
@@ -396,22 +401,22 @@ u8 MSD_GetResponse(u8 Response)
 *******************************************************************************/
 u16 MSD_GetStatus(void)
 {
-  u16 Status = 0;
+    u16 Status = 0;
 
-  /* MSD chip select low */
-  Clr_SD_CS;
-  /* Send CMD13 (MSD_SEND_STATUS) to get MSD status */
-  MSD_SendCmd(MSD_SEND_STATUS, 0, 0xFF);
+    /* MSD chip select low */
+    Clr_SD_CS;
+    /* Send CMD13 (MSD_SEND_STATUS) to get MSD status */
+    MSD_SendCmd(MSD_SEND_STATUS, 0, 0xFF);
 
-  Status = MSD_ReadByte();
-  Status |= (u16)(MSD_ReadByte() << 8);
+    Status = MSD_ReadByte();
+    Status |= (u16)(MSD_ReadByte() << 8);
 
-  /* MSD chip select high */
-  Set_SD_CS;
-  /* Send dummy byte 0xFF */
-  MSD_WriteByte(DUMMY);
+    /* MSD chip select high */
+    Set_SD_CS;
+    /* Send dummy byte 0xFF */
+    MSD_WriteByte(DUMMY);
 
-  return Status;
+    return Status;
 }
 
 /*******************************************************************************
@@ -424,40 +429,40 @@ u16 MSD_GetStatus(void)
 *******************************************************************************/
 u8 MSD_GoIdleState(void)
 {
-  /* MSD chip select low */
-  Clr_SD_CS;
-  /* Send CMD0 (GO_IDLE_STATE) to put MSD in SPI mode */
-  MSD_SendCmd(MSD_GO_IDLE_STATE, 0, 0x95);
-
-  /* Wait for In Idle State Response (R1 Format) equal to 0x01 */
-  if (MSD_GetResponse(MSD_IN_IDLE_STATE))
-  {
-    /* No Idle State Response: return response failue */
-    return MSD_RESPONSE_FAILURE;
-  }
-  /*----------Activates the card initialization process-----------*/
-  do
-  {
-    /* MSD chip select high */
-    Set_SD_CS;
-    /* Send Dummy byte 0xFF */
-    MSD_WriteByte(DUMMY);
-
     /* MSD chip select low */
     Clr_SD_CS;
+    /* Send CMD0 (GO_IDLE_STATE) to put MSD in SPI mode */
+    MSD_SendCmd(MSD_GO_IDLE_STATE, 0, 0x95);
 
-    /* Send CMD1 (Activates the card process) until response equal to 0x0 */
-    MSD_SendCmd(MSD_SEND_OP_COND, 0, 0xFF);
-    /* Wait for no error Response (R1 Format) equal to 0x00 */
-  }
-  while (MSD_GetResponse(MSD_RESPONSE_NO_ERROR));
+    /* Wait for In Idle State Response (R1 Format) equal to 0x01 */
+    if (MSD_GetResponse(MSD_IN_IDLE_STATE))
+    {
+        /* No Idle State Response: return response failue */
+        return MSD_RESPONSE_FAILURE;
+    }
+    /*----------Activates the card initialization process-----------*/
+    do
+    {
+        /* MSD chip select high */
+        Set_SD_CS;
+        /* Send Dummy byte 0xFF */
+        MSD_WriteByte(DUMMY);
 
-  /* MSD chip select high */
-  Set_SD_CS;
-  /* Send dummy byte 0xFF */
-  MSD_WriteByte(DUMMY);
- 	SPIx_SetSpeed(SPI_SPEED_4);
-  return MSD_RESPONSE_NO_ERROR;
+        /* MSD chip select low */
+        Clr_SD_CS;
+
+        /* Send CMD1 (Activates the card process) until response equal to 0x0 */
+        MSD_SendCmd(MSD_SEND_OP_COND, 0, 0xFF);
+        /* Wait for no error Response (R1 Format) equal to 0x00 */
+    }
+    while (MSD_GetResponse(MSD_RESPONSE_NO_ERROR));
+
+    /* MSD chip select high */
+    Set_SD_CS;
+    /* Send dummy byte 0xFF */
+    MSD_WriteByte(DUMMY);
+    p_dr_SPISetSpeed(SPI_SPEED_4);
+    return MSD_RESPONSE_NO_ERROR;
 }
 
 /*******************************************************************************
@@ -469,20 +474,20 @@ u8 MSD_GoIdleState(void)
 *******************************************************************************/
 void MSD_WriteByte(u8 Data)
 {
-	u8 retry=0;				 
-	while((SPI1->SR&1<<1)==0)
-	{
-		retry++;
-		if(retry>200)return;
-	}			  
-	SPI1->DR=Data;	 	  
-	retry=0;
-	while((SPI1->SR&1<<0)==0) 
-	{
-		retry++;
-		if(retry>200)return ;
-	}	  						    
-	retry= SPI1->DR;          
+    u8 retry=0;
+    while((SPI1->SR&1<<1)==0)
+    {
+        retry++;
+        if(retry>200)return;
+    }
+    SPI1->DR=Data;
+    retry=0;
+    while((SPI1->SR&1<<0)==0)
+    {
+        retry++;
+        if(retry>200)return ;
+    }
+    retry= SPI1->DR;
 }
 
 /*******************************************************************************
@@ -493,22 +498,22 @@ void MSD_WriteByte(u8 Data)
 * Return         : The received byte.
 *******************************************************************************/
 u8 MSD_ReadByte(void)
-{				  
-	u8 retry=0;				 
-	while((SPI1->SR&1<<1)==0)
-	{
-		retry++;
-		if(retry>200)return 0;
-	}			  
-	SPI1->DR=0XFF;	 	
-	retry=0;
-	while((SPI1->SR&1<<0)==0) 
-	{
-		retry++;
-		if(retry>200)return 0;
-	}	  						    
-	return SPI1->DR;           
+{
+    u8 retry=0;
+    while((SPI1->SR&1<<1)==0)
+    {
+        retry++;
+        if(retry>200)return 0;
+    }
+    SPI1->DR=0XFF;
+    retry=0;
+    while((SPI1->SR&1<<0)==0)
+    {
+        retry++;
+        if(retry>200)return 0;
+    }
+    return SPI1->DR;
 }
- 
+
 
 /******************* (C) COPYRIGHT 2010 STMicroelectronics *****END OF FILE****/
