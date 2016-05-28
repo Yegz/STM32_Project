@@ -19,6 +19,14 @@
   ******************************************************************************
   */
 
+/* == HISTORY =========================================================
+*
+* Name     Date                Ver     Action
+* --------------------------------------------------------------------
+* Carols   22-May-2016         NULL    Add USE_DEBUG_MODE Build Control
+*
+**/
+
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F10x_CONF_H
 #define __STM32F10x_CONF_H
@@ -53,7 +61,11 @@
 /* Exported constants --------------------------------------------------------*/
 /* Uncomment the line below to expanse the "assert_param" macro in the 
    Standard Peripheral Library drivers code */
-/* #define USE_FULL_ASSERT    1 */
+#define USE_DEBUG_MODE     0
+
+#if USE_DEBUG_MODE
+#define USE_FULL_ASSERT    1
+#endif
 
 /* Exported macro ------------------------------------------------------------*/
 #ifdef  USE_FULL_ASSERT

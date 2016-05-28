@@ -1,15 +1,31 @@
+/* == HISTORY =========================================================
+ *
+ * Name     Date                Ver     Action
+ * --------------------------------------------------------------------
+ * Carols   22-May-2016         Git     Add Timer Matrix KeyBoard Scans Handler 
+ *
+ **/
+
 #include "timer.h"
 #include "led.h" 
+#include "key.h"
 
-void Timerx_Init(u16 arr,u16 psc)
+/**************************************************************************************
+* Data
+**************************************************************************************/  
+
+/**************************************************************************************
+* Function Implementation
+**************************************************************************************/
+void p_dr_TimerxInit(u16 arr,u16 psc)
 {
     TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
 
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 
-    TIM_TimeBaseStructure.TIM_Period = 5000;
-    TIM_TimeBaseStructure.TIM_Prescaler =(7200-1); 
+    TIM_TimeBaseStructure.TIM_Period = arr;
+    TIM_TimeBaseStructure.TIM_Prescaler =(psc - 1); 
     TIM_TimeBaseStructure.TIM_ClockDivision = 0; 
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure); 
@@ -29,9 +45,7 @@ void TIM3_IRQHandler(void)
     if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)
     {
         TIM_ClearITPendingBit(TIM3, TIM_IT_Update  );  
-        /* Pin PD.02 toggling with frequency = 10KHz */
-        //GPIO_WriteBit(GPIOD, GPIO_Pin_2, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOD, GPIO_Pin_2)));
-        DR_LED_LED1 =!DR_LED_LED1;
+        p_dr_MatrixKeyBoardScan();
     }
 }
 
